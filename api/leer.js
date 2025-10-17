@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   try {
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-      range: 'A1',
+      range: 'Correos!A1',
       valueInputOption: 'RAW',
       requestBody: {
         values: [[timestamp]],

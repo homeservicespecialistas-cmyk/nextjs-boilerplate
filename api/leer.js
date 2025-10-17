@@ -1,4 +1,3 @@
-
 import { google } from 'googleapis';
 
 export default async function handler(req, res) {
@@ -10,24 +9,29 @@ export default async function handler(req, res) {
   );
 
   const sheets = google.sheets({ version: 'v4', auth });
+
   const timestamp = new Date().toISOString();
   const correo = (req.query.correo || '').trim().toLowerCase();
 
   try {
-    // Leer columna B (correos) desde la hoja "Correos"
+    // Leer toda la hoja desde A2:D (incluye nombre, correo, estado, código)
     const hoja = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-      range: 'Correos!B2:B',
+      range: 'Correos!A2:D',
     });
 
-    const filas = hoja.data.values;
-    const filaIndex = filas.findIndex(fila => (fila[0] || '').trim().toLowerCase() === correo);
+    const filas = hoja.data.values || [];
+
+    // Buscar el correo en la columna B (índice 1)
+    const filaIndex = filas.findIndex(fila =>
+      (fila[1] || '').trim().toLowerCase() === correo
+    );
 
     if (filaIndex === -1) {
       return res.status(404).json({ status: 'error', message: 'Correo no encontrado en la hoja Correos' });
     }
 
-    const filaReal = filaIndex + 2; // +2 porque empieza en B2
+    const filaReal = filaIndex + 2; // +2 porque empieza en A2
     await sheets.spreadsheets.values.update({
       spreadsheetId: process.env.GOOGLE_SHEETS_ID,
       range: `Correos!D${filaReal}`,
